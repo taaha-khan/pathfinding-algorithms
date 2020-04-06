@@ -9,6 +9,26 @@ var noPath = false;
 var start;
 var end;
 
+
+function neighboring(node) {
+    let neighbors = [];
+
+    for (cell of grid) {
+        if (!cell.isWall) {
+            if (cell.x == node.x && cell.y == node.y + scl) {
+                neighbors.push(cell);  // Below
+            } if (cell.x == node.x && cell.y == node.y - scl) {
+                neighbors.push(cell);  // Above
+            } if (cell.x == node.x + scl && cell.y == node.y) {
+                neighbors.push(cell);  // Onright
+            } if (cell.x == node.x - scl && cell.y == node.y) {
+                neighbors.push(cell);  // Onleft
+            }
+        }
+    }
+    return neighbors;
+}
+
 function mouseDragged() {
     for (cell of grid) {
         if (cell.x < mouseX && cell.x + scl > mouseX) {
@@ -66,11 +86,13 @@ function setup() {
 function draw() {
     background(51);
 
-    let path = Astar(start, end);
+    let Apath = Astar(start, end);
+    let path = Dijkstra(grid, start, end);
 
     for (cell of grid) {
         cell.show();
         if (path) {
+            noPath = false;
             if (path.includes(cell)) {
                 cell.showPath();
             }
