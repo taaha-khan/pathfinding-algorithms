@@ -1,2 +1,2 @@
 # pathfinding-algorithms
-An A* pathfinding algorithm
+A* and Dijkstra's pathfinding algorithms
