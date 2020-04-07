@@ -28,32 +28,39 @@ function Astar(start, end) {
         openList.splice(index, 1);
         closedList.push(current);
 
-        let neighbors = neighboring(current);
+        // Adding New Neighbors
+        let neighbors = current.neighbors;
         for (neighbor of neighbors) {
+
+            // Getting Best G Score
+            let gScore = current.g + scl;
+            let gScoreBest = false;
+
+            // Checking if spot is new
             if (!closedList.includes(neighbor)) {
                 if (!openList.includes(neighbor)) {
+
+                    // Haven't seen the spot before -> best so far
                     openList.push(neighbor);
                     neighbor.parent = current;
-                    // Updating Costs
-                    let p = neighbor.parent
-                    neighbor.g = dist(neighbor.x, neighbor.y, p.x, p.y) + dist(p.x, p.y, start.x, start.y);
-                    neighbor.h = dist(neighbor.x, neighbor.y, end.x, end.y);
+
+                    gScoreBest = true;
+                    neighbor.h = heuristic(neighbor, end);
+
+                } else if (gScore < neighbor.g) {
+                    // Saw the Spot before and new G is better
+                    gScoreBest = true;
+                }
+                
+                // Updating Costs
+                if (gScoreBest) {
+                    neighbor.g = gScore
+                    neighbor.h = heuristic(neighbor, end);
                     neighbor.f = neighbor.g + neighbor.h;
-                } else if (openList.includes(neighbor)) {
-                    let p = current;
-                    let pg = dist(neighbor.x, neighbor.y, end.x, end.y) + dist(p.x, p.y, start.x, start.y);
-                    let ph = dist(neighbor.x, neighbor.y, end.x, end.y);
-                    let pf = pg + ph;
-                    if (pf < neighbor.f) {
-                        neighbor.g = pg;
-                        neighbor.h = ph;
-                        neighbor.f = pf;
-                    }
+
                 }
             }
         }
-
-
     }
     return null;
 }
@@ -68,21 +75,7 @@ function constructPath(node) {
     return path;
 }
 
-function neighboring(node) {
-    let neighbors = [];
-
-    for (cell of grid) {
-        if (!cell.isWall) {
-            if (cell.x == node.x && cell.y == node.y + scl) {
-                neighbors.push(cell);  // Below
-            } if (cell.x == node.x && cell.y == node.y - scl) {
-                neighbors.push(cell);  // Above
-            } if (cell.x == node.x + scl && cell.y == node.y) {
-                neighbors.push(cell);  // Onright
-            } if (cell.x == node.x - scl && cell.y == node.y) {
-                neighbors.push(cell);  // Onleft
-            }
-        }
-    }
-    return neighbors;
+function heuristic(a, b) {
+    let d = dist(a.x, a.y, b.x, b.y);  // Euclidean Distance
+    return d;
 }
