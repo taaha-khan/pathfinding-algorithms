@@ -2,9 +2,6 @@
 function Dijkstra(nodes, source, target) {
 
     let Q = [];
-    // let distances = {};
-    // let prev = {};
-
 
     for (let i in nodes) {
         let v = nodes[i]
@@ -15,10 +12,7 @@ function Dijkstra(nodes, source, target) {
         Q.push(v);
     }
 
-   
-    // distances[source] = 0;
     source.dist = 0;
-
 
     while (Q.length > 0) {
         
@@ -40,14 +34,14 @@ function Dijkstra(nodes, source, target) {
         }
 
         if (u === null) {
-            return null;
+            break;
         }
 
-        let neighbors = neighboring(u);
+        let neighbors = u.neighbors;
         for (let i = 0; i < neighbors.length; i++) {
             let v = neighbors[i];
             if (Q.includes(v)) {
-                let alt = u.dist + Astar(u, v).length;
+                let alt = u.dist + scl;
                 if (alt < v.dist) {
                     v.dist = alt;
                     v.prev = u;
