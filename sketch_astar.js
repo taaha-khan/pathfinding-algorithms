@@ -1,55 +1,27 @@
-var scl = 20;
+// A* VISUALIZATION ALGORITHM
+
+console.log('A*');
+
+var scl = 10;
+var speed = 10;
 
 var grid = [];
 var walls = [];
 
 var chance = 0.2;
-var noPath = false;
 
 var start;
 var end;
+var noPath = false;
+var path;
+
+var pathFound = false;
+
+var openList = [];
+var closedList = [];
 
 
-function neighboring(node) {
-    let neighbors = [];
 
-    for (cell of grid) {
-        if (!cell.isWall) {
-            if (cell.x == node.x && cell.y == node.y + scl) {
-                neighbors.push(cell);  // Below
-            } if (cell.x == node.x && cell.y == node.y - scl) {
-                neighbors.push(cell);  // Above
-            } if (cell.x == node.x + scl && cell.y == node.y) {
-                neighbors.push(cell);  // Onright
-            } if (cell.x == node.x - scl && cell.y == node.y) {
-                neighbors.push(cell);  // Onleft
-            }
-        }
-    }
-    return neighbors;
-}
-
-function mouseDragged() {
-    for (cell of grid) {
-        if (cell.x < mouseX && cell.x + scl > mouseX) {
-            if (cell.y < mouseY && cell.y + scl > mouseY) {
-                cell.isWall = true;
-                walls.push(cell);
-            }
-        }
-    }
-}
-
-function keyPressed() {
-    if (key === ' ') {
-        for (cell of grid) {
-            cell.isWall = false;
-        }
-        walls = [];
-    } else if (key === 'r') {
-        randomWalls();
-    }
-}
 
 function randomWalls() {
     walls = [];
@@ -62,6 +34,9 @@ function randomWalls() {
     }
     start.isWall = false;
     end.isWall = false;
+
+    getNeighbors(grid);
+
 }
 
 
@@ -75,34 +50,111 @@ function setup() {
         }
     }
 
+
+
     start = grid[0];
     end = grid[grid.length - 1];
+    
     start.isWall = false;
     end.isWall = false;
 
     randomWalls();
+
+
+    openList.push(start)
+    start.parent = null;
+
+    path = [];
 }
 
 function draw() {
     background(51);
 
-    let Apath = Astar(start, end);
-    let path = Dijkstra(grid, start, end);
+    for (let loop = 0; loop < speed; loop++) {
 
-    for (cell of grid) {
-        cell.show();
-        if (path) {
-            noPath = false;
-            if (path.includes(cell)) {
-                cell.showPath();
+        if (openList.length > 0) {
+
+            let least = Infinity;
+            var current = null;
+            for (let i = 0; i < openList.length; i++) {
+                if (openList[i].f < least) {
+                    least = openList[i].f;
+                    current = openList[i];
+                } 
             }
+
+            if (current === end) {
+                pathFound = true;
+                end.parent = current.parent;
+                path = constructPath(current);
+            }
+
+
+            index = openList.indexOf(current);
+            openList.splice(index, 1);
+            closedList.push(current);
+
+            // Adding New Neighbors
+            let neighbors = current.neighbors;
+            for (neighbor of neighbors) {
+
+                // Getting Best G Score
+                let gScore = current.g + scl;
+                let gScoreBest = false;
+
+                // Checking if spot is new
+                if (!closedList.includes(neighbor)) {
+                    if (!openList.includes(neighbor)) {
+
+                        // Haven't seen the spot before -> best so far
+                        openList.push(neighbor);
+                        neighbor.parent = current;
+
+                        gScoreBest = true;
+                        neighbor.h = heuristic(neighbor, end);
+
+                    } else if (gScore < neighbor.g) {
+                        // Saw the Spot before and new G is better
+                        gScoreBest = true;
+                    }
+                    
+                    // Updating Costs
+                    if (gScoreBest) {
+                        neighbor.g = gScore
+                        neighbor.h = heuristic(neighbor, end);
+                        neighbor.f = neighbor.g + neighbor.h;
+
+                    }
+                }
+            }
+        } else {
+            console.log('No Path');
+            noLoop();
         }
     }
 
-    if (!path && !noPath) {
-        console.log('No Path');
-        noPath = true;
+    // path = constructPath(current);
+
+    for (cell of grid) {
+        cell.show();
+        if (openList.includes(cell)) {
+            fill(255, 0, 0);
+            stroke(255);
+            rect(cell.x, cell.y, scl, scl);
+        } else if (closedList.includes(cell)) {
+            fill(0, 0, 255);
+            stroke(255);
+            rect(cell.x, cell.y, scl, scl);
+        }
+        if (pathFound) {
+            if (path.includes(cell)) {
+                cell.showPath();
+            } 
+        }
+
     }
+
+    if (pathFound) noLoop();
     
 
     start.highlight()
